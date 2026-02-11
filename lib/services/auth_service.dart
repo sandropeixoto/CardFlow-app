@@ -28,13 +28,11 @@ class AuthService {
       final User? user = userCredential.user;
 
       if (user != null) {
-        final DocumentReference userRef =
-            _firestore.collection('users').doc(user.uid);
-        
-        final DocumentSnapshot doc = await userRef.get();
-
-        if (!doc.exists) {
-          userRef.set({
+        // For new users, create their document in Firestore.
+        // `isNewUser` is provided by Firebase Auth and is more efficient
+        // than checking for the document's existence.
+        if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+          await _firestore.collection('users').doc(user.uid).set({
             'display_name': user.displayName,
             'email': user.email,
             'photo_url': user.photoURL,
@@ -45,7 +43,8 @@ class AuthService {
 
       return user;
     } catch (e) {
-      // Relança a exceção para ser tratada na UI
+      // Log the error to the console for debugging and rethrow it.
+      print('Error in signInWithGoogle: $e');
       rethrow;
     }
   }
