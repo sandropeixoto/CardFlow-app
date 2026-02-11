@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:card_flow/services/auth_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
-class LandingPage extends StatelessWidget {
+class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
 
+  @override
+  State<LandingPage> createState() => _LandingPageState();
+}
+
+class _LandingPageState extends State<LandingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,13 +50,15 @@ class LandingPage extends StatelessWidget {
               ElevatedButton(
                 onPressed: () async {
                   final authService = AuthService();
-                  final User? user = await authService.signInWithGoogle();
-                  if (user != null) {
-                    // Navegar para a próxima página após o login
-                    print('Login bem-sucedido: ${user.displayName}');
-                  } else {
-                    // Lidar com falha no login
-                    print('Falha no login');
+                  try {
+                    await authService.signInWithGoogle();
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Erro ao fazer login. Tente novamente.'),
+                      ),
+                    );
                   }
                 },
                 child: const Text('Entrar com o Google'),

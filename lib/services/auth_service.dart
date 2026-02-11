@@ -45,9 +45,8 @@ class AuthService {
 
       return user;
     } catch (e) {
-      // Tratar erros de login
-      print(e);
-      return null;
+      // Relança a exceção para ser tratada na UI
+      rethrow;
     }
   }
 }
