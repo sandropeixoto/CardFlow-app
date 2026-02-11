@@ -1,8 +1,8 @@
-import 'package:card_flow/views/login/landing_page.dart';
+import 'package:card_flow/pages/landing_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:card_flow/views/home/home_page.dart';
+import 'package:card_flow/pages/home_page.dart';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
