@@ -1,4 +1,4 @@
-enum CardType { PF, PJ }
+enum CardType { pf, pj }
 
 class CreditCard {
   final String id;

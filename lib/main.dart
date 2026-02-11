@@ -17,7 +17,7 @@ const firebaseConfig = {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-      options: const FirebaseOptions(
+      options: FirebaseOptions(
         apiKey: firebaseConfig['apiKey']!,
         authDomain: firebaseConfig['authDomain']!,
         projectId: firebaseConfig['projectId']!,

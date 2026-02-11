@@ -16,7 +16,7 @@ class _HomePageState extends State<HomePage> {
     CreditCard(
       id: '1',
       nickname: 'Meu Cartão Pessoal',
-      type: CardType.PF,
+      type: CardType.pf,
       brand: 'Visa',
       dueDay: 10,
       bestDay: 1,
@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> {
     CreditCard(
       id: '2',
       nickname: 'Cartão da Empresa',
-      type: CardType.PJ,
+      type: CardType.pj,
       brand: 'Mastercard',
       dueDay: 25,
       bestDay: 15,
@@ -44,8 +44,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final pfCards = _cards.where((card) => card.type == CardType.PF).toList();
-    final pjCards = _cards.where((card) => card.type == CardType.PJ).toList();
+    final pfCards = _cards.where((card) => card.type == CardType.pf).toList();
+    final pjCards = _cards.where((card) => card.type == CardType.pj).toList();
 
     return Scaffold(
       appBar: AppBar(

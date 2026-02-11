@@ -24,8 +24,12 @@ class AuthService {
       return userCredential.user;
     } catch (e) {
       // Tratar erros de login
-      print(e);
       return null;
     }
+  }
+
+  Future<void> signOut() async {
+    await _auth.signOut();
+    await _googleSignIn.signOut();
   }
 }
