@@ -541,6 +541,7 @@ file:///home/user/CardFlow-app/lib/pages/add_card_page.dart
 file:///home/user/CardFlow-app/lib/pages/home_page.dart
 file:///home/user/CardFlow-app/lib/pages/landing_page.dart
 file:///home/user/CardFlow-app/lib/services/auth_service.dart
+file:///home/user/CardFlow-app/lib/services/card_logic.dart
 file:///home/user/CardFlow-app/lib/services/card_service.dart
 file:///home/user/CardFlow-app/lib/widgets/card_widget.dart
 file:///home/user/flutter/bin/cache/dart-sdk/lib/libraries.json
