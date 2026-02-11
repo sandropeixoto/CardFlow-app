@@ -47,9 +47,10 @@ class _HomePageState extends State<HomePage> {
                 }
 
                 final bestCard = CardLogic.findBestCard(allCards);
-                
-                final pfCards = allCards.where((card) => card.type == CardType.PF).toList();
-                final pjCards = allCards.where((card) => card.type == CardType.PJ).toList();
+                final otherCards = allCards.where((card) => card.id != bestCard?.id).toList();
+
+                final pfCards = otherCards.where((card) => card.type == CardType.PF).toList();
+                final pjCards = otherCards.where((card) => card.type == CardType.PJ).toList();
 
                 return CustomScrollView(
                   slivers: [
@@ -58,7 +59,7 @@ class _HomePageState extends State<HomePage> {
                       pinned: true,
                       centerTitle: true,
                       title: Text(
-                        'Meus Cartões',
+                        'CardFlow',
                         style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w600,
                           fontSize: 24
@@ -72,15 +73,12 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                     ),
-                    // Best Card Highlight Section
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: bestCard != null 
-                          ? _buildBestCardHighlight(bestCard) 
-                          : _buildNoBestCardWarning(),
-                      ),
-                    ),
+
+                    // Highlighted Card Section or Warning
+                    if (bestCard != null)
+                      _buildHighlightedCardSection('🔥 Use Hoje!', bestCard)
+                    else
+                      _buildNoBestCardWarning(),
 
                     if (pfCards.isNotEmpty)
                       _buildCardSection('Pessoal', pfCards),
@@ -108,76 +106,58 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
-  Widget _buildBestCardHighlight(CreditCard bestCard) {
-    final daysUntilDue = CardLogic.calculateDaysUntilDue(bestCard, DateTime.now());
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.greenAccent.withOpacity(0.1),
-        border: Border.all(color: Colors.greenAccent),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.star, color: Colors.greenAccent, size: 28),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Melhor opção hoje:",
-                  style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "${bestCard.alias} (${bestCard.brand})",
-                  style: GoogleFonts.poppins(
-                    color: Colors.white, 
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18
-                  ),
-                ),
-              ],
-            ),
+  
+  Widget _buildNoBestCardWarning() {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.orange.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.orange.withOpacity(0.5))
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.green,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              "+$daysUntilDue Dias",
-              style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),
-            ),
+          child: Row(
+            children: [
+              const Icon(Icons.warning_amber_rounded, color: Colors.orangeAccent),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  "Nenhum cartão está no período ideal de compra hoje.",
+                  style: GoogleFonts.poppins(color: Colors.orangeAccent, fontSize: 14),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildNoBestCardWarning() {
-    // Here you could add more logic to suggest when the next best day is.
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.orange.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.warning_amber_rounded, color: Colors.orangeAccent),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              "Nenhum cartão está no período ideal de compra hoje.",
-              style: GoogleFonts.poppins(color: Colors.orangeAccent, fontSize: 14),
+  Widget _buildHighlightedCardSection(String title, CreditCard card) {
+    final titleStyle = GoogleFonts.poppins(
+      fontSize: 22,
+      fontWeight: FontWeight.w600,
+      color: const Color(0xFFFACC15), // Yellow for highlighted
+    );
+
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0, bottom: 12.0, top: 16.0),
+              child: Text(title, style: titleStyle),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
+              child: CardWidget(card: card, isHighlighted: true),
+            ),
+          ],
+        ),
       ),
     );
   }
