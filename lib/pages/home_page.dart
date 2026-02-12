@@ -1,4 +1,5 @@
 import 'package:card_flow/models/card_model.dart';
+import 'package:card_flow/models/recommendation_result.dart';
 import 'package:card_flow/pages/add_card_page.dart';
 import 'package:card_flow/services/card_logic.dart';
 import 'package:card_flow/services/card_service.dart';
@@ -46,8 +47,8 @@ class _HomePageState extends State<HomePage> {
                   return _buildEmptyState();
                 }
 
-                final bestCard = CardLogic.findBestCard(allCards);
-                final otherCards = allCards.where((card) => card.id != bestCard?.id).toList();
+                final recommendation = CardLogic.findBestCard(allCards);
+                final otherCards = allCards.where((card) => card.id != recommendation.card?.id).toList();
 
                 final pfCards = otherCards.where((card) => card.type == CardType.PF).toList();
                 final pjCards = otherCards.where((card) => card.type == CardType.PJ).toList();
@@ -74,11 +75,8 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
 
-                    // Highlighted Card Section or Warning
-                    if (bestCard != null)
-                      _buildHighlightedCardSection('🔥 Use Hoje!', bestCard)
-                    else
-                      _buildNoBestCardWarning(),
+                    // Seção de Destaque ou Alerta de Próxima Janela
+                    _buildRecommendationSection(recommendation),
 
                     if (pfCards.isNotEmpty)
                       _buildCardSection('Pessoal', pfCards),
@@ -87,7 +85,7 @@ class _HomePageState extends State<HomePage> {
                       _buildCardSection('Empresarial', pjCards),
 
                     const SliverToBoxAdapter(
-                      child: SizedBox(height: 100), // Space for FAB
+                      child: SizedBox(height: 100), // Espaço para o FAB
                     )
                   ],
                 );
@@ -107,7 +105,36 @@ class _HomePageState extends State<HomePage> {
     );
   }
   
-  Widget _buildNoBestCardWarning() {
+  Widget _buildRecommendationSection(RecommendationResult recommendation) {
+    if (recommendation.card == null) {
+      return _buildEmptyState(); // Nenhum cartão cadastrado
+    }
+
+    if (recommendation.isBestChoice) {
+      // Verde: Melhor escolha hoje
+      return _buildHighlightedCardSection(
+        '🔥 Use Hoje!',
+        recommendation.card!,
+        "Use este cartão para ganhar ${recommendation.daysUntilNextWindow} dias de prazo",
+      );
+    } else {
+      // Amarelo: Próxima janela
+      return _buildNextWindowWarning(
+        recommendation.card!,
+        recommendation.daysUntilNextWindow,
+      );
+    }
+  }
+
+  Widget _buildNextWindowWarning(CreditCard card, int daysUntil) {
+    final cardName = card.name;
+    String message;
+    if (daysUntil == 1) {
+        message = "A próxima janela abre em 1 dia com o cartão $cardName.";
+    } else {
+        message = "A próxima janela abre em $daysUntil dias com o cartão $cardName.";
+    }
+
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -120,11 +147,11 @@ class _HomePageState extends State<HomePage> {
           ),
           child: Row(
             children: [
-              const Icon(Icons.warning_amber_rounded, color: Colors.orangeAccent),
+              const Icon(Icons.info_outline_rounded, color: Colors.orangeAccent),
               const SizedBox(width: 16),
               Expanded(
                 child: Text(
-                  "Nenhum cartão está no período ideal de compra hoje.",
+                  "Nenhum cartão está no melhor dia hoje. $message",
                   style: GoogleFonts.poppins(color: Colors.orangeAccent, fontSize: 14),
                 ),
               ),
@@ -135,11 +162,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildHighlightedCardSection(String title, CreditCard card) {
+  Widget _buildHighlightedCardSection(String title, CreditCard card, String subtitle) {
     final titleStyle = GoogleFonts.poppins(
       fontSize: 22,
       fontWeight: FontWeight.w600,
-      color: const Color(0xFFFACC15), // Yellow for highlighted
+      color: Colors.greenAccent, // Verde para a melhor escolha
     );
 
     return SliverToBoxAdapter(
@@ -149,8 +176,15 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 8.0, bottom: 12.0, top: 16.0),
+              padding: const EdgeInsets.only(left: 8.0, bottom: 4.0, top: 16.0),
               child: Text(title, style: titleStyle),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0, bottom: 12.0),
+              child: Text(
+                subtitle,
+                style: GoogleFonts.poppins(fontSize: 14, color: Colors.white70),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10.0),
