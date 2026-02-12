@@ -44,7 +44,7 @@ class _AddCardPageState extends State<AddCardPage> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error: User not logged in.')),
+          const SnackBar(content: Text('Erro: Usuário não está logado.')),
         );
         return;
       }
@@ -67,14 +67,14 @@ class _AddCardPageState extends State<AddCardPage> {
         await _cardService.addCard(newCard);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Card added successfully!')),
+            const SnackBar(content: Text('Cartão adicionado com sucesso!')),
           );
           Navigator.pop(context);
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to add card: $e')),
+            SnackBar(content: Text('Falha ao adicionar o cartão: $e')),
           );
         }
       }
@@ -86,7 +86,7 @@ class _AddCardPageState extends State<AddCardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add New Card'),
+        title: const Text('Adicionar Novo Cartão'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -97,10 +97,10 @@ class _AddCardPageState extends State<AddCardPage> {
             children: [
               TextFormField(
                 controller: _aliasController,
-                decoration: const InputDecoration(labelText: 'Card Name (e.g., Itaú Black)'),
+                decoration: const InputDecoration(labelText: 'Nome do Cartão (ex: Itaú Black)'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a name for the card';
+                    return 'Por favor, insira um nome para o cartão';
                   }
                   return null;
                 },
@@ -108,7 +108,7 @@ class _AddCardPageState extends State<AddCardPage> {
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: _selectedBrand,
-                decoration: const InputDecoration(labelText: 'Brand'),
+                decoration: const InputDecoration(labelText: 'Bandeira'),
                 items: _brands.map((String brand) {
                   return DropdownMenuItem<String>(
                     value: brand,
@@ -124,13 +124,13 @@ class _AddCardPageState extends State<AddCardPage> {
               const SizedBox(height: 16),
                TextFormField(
                 controller: _lastFourController,
-                decoration: const InputDecoration(labelText: 'Last 4 Digits'),
+                decoration: const InputDecoration(labelText: 'Últimos 4 Dígitos'),
                  keyboardType: TextInputType.number,
                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                  maxLength: 4,
                 validator: (value) {
                   if (value == null || value.length != 4) {
-                    return 'Please enter the last 4 digits';
+                    return 'Por favor, insira os últimos 4 dígitos';
                   }
                   return null;
                 },
@@ -145,7 +145,7 @@ class _AddCardPageState extends State<AddCardPage> {
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.length != 3) {
-                    return 'Please enter the 3-digit CVV';
+                    return 'Por favor, insira o CVV de 3 dígitos';
                   }
                   return null;
                 },
@@ -156,14 +156,14 @@ class _AddCardPageState extends State<AddCardPage> {
                   Expanded(
                     child: TextFormField(
                       controller: _dueDayController,
-                      decoration: const InputDecoration(labelText: 'Due Day'),
+                      decoration: const InputDecoration(labelText: 'Dia do Vencimento'),
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       validator: (value) {
-                        if (value == null || value.isEmpty) return 'Required';
+                        if (value == null || value.isEmpty) return 'Obrigatório';
                         final day = int.tryParse(value);
                         if (day == null || day < 1 || day > 31) {
-                          return 'Invalid day';
+                          return 'Dia inválido';
                         }
                         return null;
                       },
@@ -173,14 +173,14 @@ class _AddCardPageState extends State<AddCardPage> {
                   Expanded(
                      child: TextFormField(
                       controller: _bestDayController,
-                      decoration: const InputDecoration(labelText: 'Best Purchase Day'),
+                      decoration: const InputDecoration(labelText: 'Melhor Dia para Compra'),
                       keyboardType: TextInputType.number,
                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       validator: (value) {
-                         if (value == null || value.isEmpty) return 'Required';
+                         if (value == null || value.isEmpty) return 'Obrigatório';
                          final day = int.tryParse(value);
                          if (day == null || day < 1 || day > 31) {
-                           return 'Invalid day';
+                           return 'Dia inválido';
                          }
                          return null;
                        },
@@ -191,10 +191,10 @@ class _AddCardPageState extends State<AddCardPage> {
               const SizedBox(height: 16),
               DropdownButtonFormField<CardType>(
                 value: _selectedType,
-                decoration: const InputDecoration(labelText: 'Type'),
+                decoration: const InputDecoration(labelText: 'Tipo'),
                 items: const [
-                  DropdownMenuItem(value: CardType.PF, child: Text('Personal (PF)')),
-                  DropdownMenuItem(value: CardType.PJ, child: Text('Business (PJ)')),
+                  DropdownMenuItem(value: CardType.PF, child: Text('Pessoa Física (PF)')),
+                  DropdownMenuItem(value: CardType.PJ, child: Text('Pessoa Jurídica (PJ)')),
                 ],
                 onChanged: (newValue) {
                   setState(() {
@@ -204,7 +204,7 @@ class _AddCardPageState extends State<AddCardPage> {
               ),
               const SizedBox(height: 16),
               SwitchListTile(
-                title: const Text('Automatic Debit'),
+                title: const Text('Débito Automático'),
                 value: _isAutoPay,
                 onChanged: (bool value) {
                   setState(() {
@@ -216,7 +216,7 @@ class _AddCardPageState extends State<AddCardPage> {
               Center(
                 child: ElevatedButton(
                   onPressed: _submitForm,
-                  child: const Text('Add Card'),
+                  child: const Text('Adicionar Cartão'),
                 ),
               ),
             ],

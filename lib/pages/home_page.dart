@@ -1,7 +1,7 @@
 import 'package:card_flow/models/card_model.dart';
 import 'package:card_flow/models/recommendation_result.dart';
 import 'package:card_flow/pages/add_card_page.dart';
-import 'package:card_flow/pages/profile_page.dart'; // Import the new profile page
+import 'package:card_flow/pages/profile_page.dart';
 import 'package:card_flow/services/card_logic.dart';
 import 'package:card_flow/services/card_service.dart';
 import 'package:card_flow/widgets/card_widget.dart';
@@ -44,13 +44,15 @@ class _HomePageState extends State<HomePage> {
                 }
 
                 final allCards = snapshot.data?.docs.map((doc) => doc.data()).toList() ?? [];
+                final activeCards = allCards.where((card) => card.status == CardStatus.active).toList();
+                final archivedCards = allCards.where((card) => card.status == CardStatus.archived).toList();
 
-                if (allCards.isEmpty) {
+                if (activeCards.isEmpty && archivedCards.isEmpty) {
                   return _buildEmptyState();
                 }
 
-                final recommendation = CardLogic.findBestCard(allCards);
-                final otherCards = allCards.where((card) => card.id != recommendation.card?.id).toList();
+                final recommendation = CardLogic.findBestCard(activeCards);
+                final otherCards = activeCards.where((card) => card.id != recommendation.card?.id).toList();
 
                 final pfCards = otherCards.where((card) => card.type == CardType.PF).toList();
                 final pjCards = otherCards.where((card) => card.type == CardType.PJ).toList();
@@ -87,13 +89,16 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
 
-                    _buildRecommendationSection(recommendation),
+                    if (activeCards.isNotEmpty) ...[
+                      _buildRecommendationSection(recommendation),
+                      if (pfCards.isNotEmpty)
+                        _buildCardSection('Pessoal', pfCards),
+                      if (pjCards.isNotEmpty)
+                        _buildCardSection('Empresarial', pjCards),
+                    ],
 
-                    if (pfCards.isNotEmpty)
-                      _buildCardSection('Pessoal', pfCards),
-                      
-                    if (pjCards.isNotEmpty)
-                      _buildCardSection('Empresarial', pjCards),
+                    if (archivedCards.isNotEmpty)
+                      _buildArchivedCardsSection('Cartões Arquivados', archivedCards),
 
                     const SliverToBoxAdapter(
                       child: SizedBox(height: 100), // Space for FAB
@@ -118,7 +123,9 @@ class _HomePageState extends State<HomePage> {
   
   Widget _buildRecommendationSection(RecommendationResult recommendation) {
     if (recommendation.card == null) {
-      return _buildEmptyState(); // No cards registered
+      // This case might happen if all cards are archived, for instance.
+      // We can return an empty sliver or a specific message.
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
     }
 
     if (recommendation.isBestChoice) {
@@ -197,7 +204,61 @@ class _HomePageState extends State<HomePage> {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10.0),
-              child: CardWidget(card: card, isHighlighted: true),
+              child: Dismissible(
+                  key: Key(card.id),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    alignment: Alignment.centerRight,
+                    child: const Icon(Icons.archive_outlined, color: Colors.white),
+                  ),
+                  confirmDismiss: (direction) async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text('Arquivar Cartão?'),
+                          content: const Text(
+                            'Este cartão sairá da sua lista principal e não receberá novos alertas. Você pode restaurá-lo depois.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Cancelar'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('Arquivar'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    return confirmed ?? false;
+                  },
+                  onDismissed: (direction) async {
+                    await _cardService.toggleCardArchiveStatus(card.id, card.status);
+
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Cartão arquivado.'),
+                          action: SnackBarAction(
+                            label: 'DESFAZER',
+                            onPressed: () {
+                              _cardService.toggleCardArchiveStatus(card.id, CardStatus.archived);
+                            },
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  child: CardWidget(card: card, isHighlighted: true),
+                ),
             ),
           ],
         ),
@@ -245,12 +306,127 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             ...cards.map((card) {
-               return Padding(
-                 padding: const EdgeInsets.symmetric(vertical: 10.0),
-                 child: CardWidget(card: card),
-               );
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                child: Dismissible(
+                  key: Key(card.id),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    alignment: Alignment.centerRight,
+                    child: const Icon(Icons.archive_outlined, color: Colors.white),
+                  ),
+                  confirmDismiss: (direction) async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text('Arquivar Cartão?'),
+                          content: const Text(
+                            'Este cartão sairá da sua lista principal e não receberá novos alertas. Você pode restaurá-lo depois.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Cancelar'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('Arquivar'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    return confirmed ?? false;
+                  },
+                  onDismissed: (direction) async {
+                    await _cardService.toggleCardArchiveStatus(card.id, card.status);
+
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Cartão arquivado.'),
+                          action: SnackBarAction(
+                            label: 'DESFAZER',
+                            onPressed: () {
+                              _cardService.toggleCardArchiveStatus(card.id, CardStatus.archived);
+                            },
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  child: CardWidget(card: card),
+                ),
+              );
             }).toList(),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildArchivedCardsSection(String title, List<CreditCard> cards) {
+    final theme = Theme.of(context);
+    final count = cards.length;
+
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+        child: ExpansionTile(
+          leading: Icon(Icons.inventory_2_outlined, color: theme.textTheme.bodySmall?.color),
+          title: Text(
+            '$title ($count)',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: theme.textTheme.bodySmall?.color,
+            ),
+          ),
+          children: cards.map((card) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: GestureDetector(
+                onTap: () async {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text('Reativar Cartão?'),
+                        content: const Text('Deseja reativar este cartão? Ele voltará para a sua lista principal.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Cancelar'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text('Reativar'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  if (confirmed == true && mounted) {
+                    await _cardService.toggleCardArchiveStatus(card.id, card.status);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Cartão reativado com sucesso!')),
+                    );
+                  }
+                },
+                child: Opacity(
+                  opacity: 0.6,
+                  child: CardWidget(card: card),
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ),
     );

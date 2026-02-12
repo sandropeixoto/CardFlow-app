@@ -31,4 +31,10 @@ class CardService {
   Future<void> deleteCard(String cardId) {
     return _cardsRef.doc(cardId).delete();
   }
+
+  // Toggle the archive status of a card
+  Future<void> toggleCardArchiveStatus(String cardId, CardStatus currentStatus) {
+    final newStatus = currentStatus == CardStatus.active ? CardStatus.archived : CardStatus.active;
+    return _cardsRef.doc(cardId).update({'status': newStatus.name});
+  }
 }

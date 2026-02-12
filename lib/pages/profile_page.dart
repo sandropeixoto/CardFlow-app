@@ -59,8 +59,9 @@ class ProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 40.0),
                 child: OutlinedButton.icon(
                   onPressed: () async {
+                    final navigator = Navigator.of(context);
                     await FirebaseAuth.instance.signOut();
-                    // The StreamBuilder on the auth state will handle navigation
+                    navigator.popUntil((route) => route.isFirst);
                   },
                   icon: const Icon(Icons.logout, color: Colors.redAccent),
                   label: Text(
