@@ -537,9 +537,11 @@ file:///home/user/CardFlow-app/.dart_tool/flutter_build/839e948369587efff320d1bd
 file:///home/user/CardFlow-app/.dart_tool/package_config.json
 file:///home/user/CardFlow-app/lib/main.dart
 file:///home/user/CardFlow-app/lib/models/card_model.dart
+file:///home/user/CardFlow-app/lib/models/recommendation_result.dart
 file:///home/user/CardFlow-app/lib/pages/add_card_page.dart
 file:///home/user/CardFlow-app/lib/pages/home_page.dart
 file:///home/user/CardFlow-app/lib/pages/landing_page.dart
+file:///home/user/CardFlow-app/lib/pages/profile_page.dart
 file:///home/user/CardFlow-app/lib/services/auth_service.dart
 file:///home/user/CardFlow-app/lib/services/card_logic.dart
 file:///home/user/CardFlow-app/lib/services/card_service.dart

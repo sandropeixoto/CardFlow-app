@@ -10,19 +10,27 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
+  bool _isLoading = false;
+
   void _handleLogin(BuildContext context) async {
+    setState(() => _isLoading = true);
     try {
       final user = await AuthService().signInWithGoogle();
-
-      if (user != null) {
-        // Success is handled by the StreamBuilder in main.dart
-      } 
+      // O redirecionamento é feito automaticamente pelo StreamBuilder no main.dart
+      if (user == null && mounted) {
+        setState(() => _isLoading = false);
+      }
     } catch (e) {
       if (!mounted) return;
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Falha no login. Tente novamente.', style: GoogleFonts.poppins()),
+          content: Text(
+            'Falha no login. Tente novamente.',
+            style: GoogleFonts.poppins(color: Colors.white),
+          ),
           backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
         ),
       );
     }
@@ -30,89 +38,119 @@ class _LandingPageState extends State<LandingPage> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF6C63FF);
-    const backgroundColor = Color(0xFF1A1B26);
-    const textColor = Color(0xFFA0A0B0);
+    // Paleta de Cores Premium
+    const backgroundColor = Color(0xFF181920); // Dark Charcoal
+    const primaryAccent = Color(0xFF6C63FF);   // Roxo Neon
+    const successColor = Color(0xFF00D09C);    // Verde Menta (Dinheiro/Prazo)
+    const textColor = Colors.white;
+    const subTextColor = Color(0xFFA0A0B0);
 
     return Scaffold(
       backgroundColor: backgroundColor,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Header Section
-              Column(
-                children: [
-                  const Icon(Icons.credit_card_rounded, color: primaryColor, size: 80),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Bem-vindo ao CardFlow',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Sua vida financeira, simplificada e segura.',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      color: textColor,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
+              // 1. HEADER & LOGO
+              // A logo dá a identidade imediata do app
+              Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+                child: Image.asset(
+                  'assets/images/logo-cardflow-no-background.png',
+                  height: 60, // Tamanho controlado para não estourar
+                  fit: BoxFit.contain,
+                ),
               ),
 
-              // Features Section
+              // 2. CONTEÚDO CENTRAL (A DOR E A SOLUÇÃO)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildFeature(Icons.check_circle_outline, 'Gerenciamento centralizado de cartões'),
+                  // Gatilho da Dor (Headline)
+                  Text(
+                    'Cansado de perder dinheiro com seus cartões?',
+                    style: GoogleFonts.poppins(
+                      color: textColor,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      height: 1.2,
+                    ),
+                  ),
                   const SizedBox(height: 16),
-                  _buildFeature(Icons.check_circle_outline, 'Acompanhamento de despesas em tempo real'),
+                  
+                  // A Solução (Subheadline)
+                  Text(
+                    'Pare de pagar juros e comece a ganhar tempo. O CardFlow escolhe o melhor cartão para hoje, garantindo até 40 dias de fôlego no seu bolso.',
+                    style: GoogleFonts.poppins(
+                      color: subTextColor,
+                      fontSize: 16,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Benefícios Visuais (Bullet Points)
+                  _buildBenefit(
+                    icon: Icons.calendar_today_rounded,
+                    color: successColor,
+                    text: 'Saiba qual cartão usar em 1 segundo',
+                  ),
                   const SizedBox(height: 16),
-                  _buildFeature(Icons.check_circle_outline, 'Segurança com autenticação biométrica'),
+                  _buildBenefit(
+                    icon: Icons.shield_outlined,
+                    color: primaryAccent,
+                    text: 'Evite juros de atraso com alertas',
+                  ),
                 ],
               ),
 
-              // Login Button Section
-              Container(
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: primaryColor.withOpacity(0.4),
-                      blurRadius: 20,
-                      spreadRadius: -10,
-                      offset: const Offset(0, 10),
+              // 3. CTA (CHAMADA PARA AÇÃO)
+              Column(
+                children: [
+                  if (_isLoading)
+                    const CircularProgressIndicator(color: primaryAccent)
+                  else
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: () => _handleLogin(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white, // Contraste máximo
+                          foregroundColor: Colors.black87,
+                          elevation: 5,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Tenta usar um ícone que lembre o Google ou o padrão de login
+                            const Icon(Icons.login, color: Colors.black87), 
+                            const SizedBox(width: 12),
+                            Text(
+                              'Entrar com o Google',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ],
-                ),
-                child: ElevatedButton.icon(
-                  onPressed: () => _handleLogin(context),
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: primaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0, // Shadow is handled by the container
-                  ),
-                  icon: const Icon(Icons.g_mobiledata_rounded, size: 28),
-                  label: Text(
-                    'Entrar com Google',
+                  const SizedBox(height: 16),
+                  Text(
+                    'Seguro e sem senhas extras.',
                     style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
+                      color: Colors.white24,
+                      fontSize: 12,
                     ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
@@ -121,17 +159,26 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  Widget _buildFeature(IconData icon, String text) {
+  // Widget Auxiliar para os Benefícios
+  Widget _buildBenefit({required IconData icon, required Color color, required String text}) {
     return Row(
       children: [
-        Icon(icon, color: const Color(0xFF6C63FF), size: 20),
-        const SizedBox(width: 12),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        const SizedBox(width: 16),
         Expanded(
           child: Text(
             text,
             style: GoogleFonts.poppins(
-              color: const Color(0xFFA0A0B0),
-              fontSize: 14,
+              color: Colors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),

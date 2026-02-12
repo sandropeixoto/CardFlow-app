@@ -1,6 +1,7 @@
 import 'package:card_flow/models/card_model.dart';
 import 'package:card_flow/models/recommendation_result.dart';
 import 'package:card_flow/pages/add_card_page.dart';
+import 'package:card_flow/pages/profile_page.dart'; // Import the new profile page
 import 'package:card_flow/services/card_logic.dart';
 import 'package:card_flow/services/card_service.dart';
 import 'package:card_flow/widgets/card_widget.dart';
@@ -19,6 +20,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final CardService _cardService = CardService();
   final String? _userId = FirebaseAuth.instance.currentUser?.uid;
+  final User? _user = FirebaseAuth.instance.currentUser;
 
   @override
   Widget build(BuildContext context) {
@@ -57,25 +59,34 @@ class _HomePageState extends State<HomePage> {
                   slivers: [
                     SliverAppBar(
                       backgroundColor: theme.scaffoldBackgroundColor,
+                      elevation: 0,
                       pinned: true,
                       centerTitle: true,
-                      title: Text(
-                        'CardFlow',
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 24
-                        ),
+                      title: Image.asset(
+                        'assets/images/logo-cardflow-name-no-background.png',
+                        height: 40,
+                        fit: BoxFit.contain,
                       ),
                       actions: [
-                        IconButton(
-                          icon: const Icon(Icons.logout),
-                          onPressed: () => FirebaseAuth.instance.signOut(),
-                          tooltip: 'Sair',
+                        Padding(
+                          padding: const EdgeInsets.only(right: 16.0),
+                          child: GestureDetector(
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+                            child: CircleAvatar(
+                              radius: 18,
+                              backgroundColor: Colors.deepPurple, // Fallback color
+                              backgroundImage: _user?.photoURL != null
+                                  ? NetworkImage(_user!.photoURL!)
+                                  : null,
+                              child: _user?.photoURL == null
+                                  ? const Icon(Icons.person, color: Colors.white, size: 22)
+                                  : null,
+                            ),
+                          ),
                         ),
                       ],
                     ),
 
-                    // Seção de Destaque ou Alerta de Próxima Janela
                     _buildRecommendationSection(recommendation),
 
                     if (pfCards.isNotEmpty)
@@ -85,7 +96,7 @@ class _HomePageState extends State<HomePage> {
                       _buildCardSection('Empresarial', pjCards),
 
                     const SliverToBoxAdapter(
-                      child: SizedBox(height: 100), // Espaço para o FAB
+                      child: SizedBox(height: 100), // Space for FAB
                     )
                   ],
                 );
@@ -107,18 +118,16 @@ class _HomePageState extends State<HomePage> {
   
   Widget _buildRecommendationSection(RecommendationResult recommendation) {
     if (recommendation.card == null) {
-      return _buildEmptyState(); // Nenhum cartão cadastrado
+      return _buildEmptyState(); // No cards registered
     }
 
     if (recommendation.isBestChoice) {
-      // Verde: Melhor escolha hoje
       return _buildHighlightedCardSection(
         '🔥 Use Hoje!',
         recommendation.card!,
         "Use este cartão para ganhar ${recommendation.daysUntilNextWindow} dias de prazo",
       );
     } else {
-      // Amarelo: Próxima janela
       return _buildNextWindowWarning(
         recommendation.card!,
         recommendation.daysUntilNextWindow,
@@ -127,7 +136,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildNextWindowWarning(CreditCard card, int daysUntil) {
-    final cardName = card.name;
+    final cardName = card.alias;
     String message;
     if (daysUntil == 1) {
         message = "A próxima janela abre em 1 dia com o cartão $cardName.";
@@ -166,7 +175,7 @@ class _HomePageState extends State<HomePage> {
     final titleStyle = GoogleFonts.poppins(
       fontSize: 22,
       fontWeight: FontWeight.w600,
-      color: Colors.greenAccent, // Verde para a melhor escolha
+      color: Colors.greenAccent,
     );
 
     return SliverToBoxAdapter(
